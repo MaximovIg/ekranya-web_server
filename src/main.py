@@ -28,7 +28,7 @@ async def check_activation():
 async def check_activation(key: str, machine: str):
     if not await db.is_activated(key, machine):
         return HTTPException(
-            status_code=404, detailed=f'key not activated on this machine'
+            status_code=404, detail=f'key not activated on this machine'
         )
     else:
         return 
@@ -37,7 +37,7 @@ async def check_activation(key: str, machine: str):
 async def add_activation(key, machine):
     if not await db.add_activation(key, machine):
         return HTTPException(
-            status_code=404, detailed=f'failed to activate key'
+            status_code=404, detail=f'failed to activate key'
         )
     else:
         return
