@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from src.db.orm import AsyncORM as db
@@ -26,12 +26,21 @@ async def check_activation():
 
 @app.get('/isactivated/')
 async def check_activation(key: str, machine: str):
-    return await db.is_activated(key, machine)
+    if not await db.is_activated(key, machine):
+        return HTTPException(
+            status_code=404, detailed=f'key not activated on this machine'
+        )
+    else:
+        return 
 
 @app.post('/addactivation/')
 async def add_activation(key, machine):
-    print(key, machine)
-    return await db.add_activation(key, machine)
+    if not await db.add_activation(key, machine):
+        return HTTPException(
+            status_code=404, detailed=f'failed to activate key'
+        )
+    else:
+        return
 
 
 
