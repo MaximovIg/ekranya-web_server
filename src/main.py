@@ -39,9 +39,9 @@ async def check_activation(key: str, machine: str):
 @app.post('/addactivation/')
 async def add_activation(key, machine):
     if await db.add_activation(key, machine):
-        return ActivationItem(key, True)
+        return ActivationItem(key=key, success=True)
     else:
-        return ActivationItem(key, False)
+        return ActivationItem(key=key, success=False)
 
 
 
