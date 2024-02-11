@@ -1,12 +1,6 @@
 import asyncio
-import sys
-import os
 
 from db.orm import AsyncORM as db
-
-
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
 
 class KeyMock:
 
@@ -14,7 +8,7 @@ class KeyMock:
         return 'Y04UB-5RGF3-BQYG7-ZB825-GEV8Y'
 
 
-async def main():
+async def db_test():
     #создание новых ключей
     import time
     start = time.perf_counter()
@@ -55,16 +49,17 @@ async def main():
     assert res == False, f'{res}'
     await db.add_activation(KeyMock().generate(), 'personal_machine')
     res = await db.activation_exists(1, 'personal_machine')
-    assert res == True, f'{res}'  
+    assert res == True, f'{res}'
 
+    await db.create_tables()    
 
     print('tests passed')   
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    asyncio.run(db_test())
 
-    import subprocess
+    # import subprocess
 
-    UUID = str(subprocess.check_output('wmic csproduct get UUID'),'utf-8').split('\n')[1].strip()
+    # UUID = str(subprocess.check_output('wmic csproduct get UUID'),'utf-8').split('\n')[1].strip()
 
-    print(UUID) 
+    # print(UUID) 

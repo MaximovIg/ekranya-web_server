@@ -1,9 +1,9 @@
 from sqlalchemy import select, and_
 
-from db.database import async_engine, async_session
-from db.models import Base, KeysOrm, ActivationsOrm
+from src.db.database import async_engine, async_session
+from src.db.models import Base, KeysOrm, ActivationsOrm
 
-from utils.key import Key
+from src.utils.key import Key
 
 
 class AsyncORM:
@@ -89,6 +89,26 @@ class AsyncORM:
                 return True
             else:
                 return False
+            
+    @staticmethod
+    async def is_activated(key, machine):
+        async with async_session() as session:
+            try:
+                res = await session.execute(select(KeysOrm).filter_by(key=key))
+                key_id = res.scalars().one().id
+                res = await session.execute(select(ActivationsOrm).where(
+                    and_(
+                        ActivationsOrm.key_id == key_id,
+                        ActivationsOrm.machine == machine
+                        )
+                        ))          
+                if res.scalar():                                        
+                    return True
+                else:
+                    return False
+            except:
+                return False
+
 
     @staticmethod
     async def available_activations(key):
