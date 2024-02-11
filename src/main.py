@@ -20,27 +20,28 @@ async def check_activation():
     return await db.select_keys()
 # ======================================
 
+class ActivationItem(BaseModel):
+    key: str
+    success: bool
+
+
 @app.get('/')
-async def check_activation():
+async def index():
     ...
 
 @app.get('/isactivated/')
 async def check_activation(key: str, machine: str):
-    if not await db.is_activated(key, machine):
-        return HTTPException(
-            status_code=404, detail=f'key not activated on this machine'
-        )
+    if await db.is_activated(key, machine):
+        return ActivationItem(key=key, success=True)
     else:
-        return 
+        return ActivationItem(key=key, success=False)
 
 @app.post('/addactivation/')
 async def add_activation(key, machine):
-    if not await db.add_activation(key, machine):
-        return HTTPException(
-            status_code=404, detail=f'failed to activate key'
-        )
+    if await db.add_activation(key, machine):
+        return ActivationItem(key, True)
     else:
-        return
+        return ActivationItem(key, False)
 
 
 
