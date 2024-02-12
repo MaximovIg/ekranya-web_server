@@ -8,15 +8,15 @@ app = FastAPI()
 
 # ==========================================
 @app.get('/cleartables/')
-async def check_activation():
-    return await db.create_tables()
+async def create_table():
+    await db.create_tables()
 
 @app.get('/addkeys/')
-async def check_activation(quantity: int, max_usages: int):
-    return await db.generate_keys(quantity, max_usages)
+async def generate_keys(quantity: int, max_usages: int):
+    await db.generate_keys(quantity, max_usages)
 
 @app.get('/keys/')
-async def check_activation():
+async def select_keys():
     return await db.select_keys()
 # ======================================
 

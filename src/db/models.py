@@ -1,11 +1,11 @@
-from sqlalchemy import ForeignKey, func
+from sqlalchemy import ForeignKey, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from datetime import datetime
 from typing import Annotated
 
 
-created_at = Annotated[datetime,  mapped_column(server_default=func.now())] 
+created_at = Annotated[datetime, mapped_column(server_default=text("TIMEZONE('Europe/Moscow', now())"))] 
 
 
 class Base(DeclarativeBase):
