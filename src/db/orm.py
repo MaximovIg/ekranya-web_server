@@ -1,9 +1,18 @@
+import sys
+import logging
+
 from sqlalchemy import select, and_
 
 from src.db.database import async_engine, async_session
 from src.db.models import Base, KeysOrm, ActivationsOrm
 
 from src.utils.key import Key
+
+
+logger = logging.getLogger(__name__)
+stream_handler = logging.StreamHandler(sys.stdout)
+logger.handlers = [stream_handler, ]
+logger.setLevel(logging.DEBUG)
 
 
 class AsyncORM:
@@ -42,19 +51,20 @@ class AsyncORM:
         async with async_session() as session:            
             #проверить, что такой ключ существует
             existed_keys = await AsyncORM.select_keys()
+            
             if key not in existed_keys:
                 return False
             
             res = await session.execute(select(KeysOrm).filter_by(key=key))
             key_id = res.scalars().one().id
-            
-            #проверить, что есть доступные активации 
-            if await AsyncORM.available_activations(key_id) <= 0:
-                return False
-                        
+
             #проверить, что активация с таким ключом на такой машине уже есть
             if await AsyncORM.activation_exists(key_id, machine):
                 return True
+            
+            #проверить, что есть доступные активации 
+            if await AsyncORM.available_activations(key_id) <= 0:
+                return False            
             
             #добавить новую активацию
             session.add(ActivationsOrm(key_id=key_id, machine=machine))
@@ -64,7 +74,7 @@ class AsyncORM:
             key_used = res.scalars().one().used
             await AsyncORM.update_used(key_id, key_used+1)
             await session.commit()
-
+            
             return True
         
     @staticmethod
@@ -77,18 +87,18 @@ class AsyncORM:
             await session.commit()
         
     @staticmethod
-    async def activation_exists(key_id, machine):
+    async def activation_exists(key_id, machine):        
         async with async_session() as session:
             res = await session.execute(select(ActivationsOrm).where(
                 and_(
                     ActivationsOrm.key_id == key_id,
                     ActivationsOrm.machine == machine
                     )
-                    ))          
-            if res.scalar():                                        
+                    ))         
+            if res.scalar():
                 return True
             else:
-                return False
+                return False                    
             
     @staticmethod
     async def is_activated(key, machine):
@@ -102,13 +112,15 @@ class AsyncORM:
                         ActivationsOrm.machine == machine
                         )
                         ))          
-                if res.scalar():                                        
+                if res.scalar():
+                    logger.debug('activation key %s exists for machine %s' % (key, machine))                                         
                     return True
                 else:
+                    logger.debug('activation key %s does not exist for machine %s' % (key, machine))
                     return False
-            except:
+            except Exception as err:
+                logger.error(err)
                 return False
-
 
     @staticmethod
     async def available_activations(key):
@@ -123,15 +135,3 @@ class AsyncORM:
             used = res.scalars().one().used
 
             return max_usages-used
-        
-    @staticmethod
-    async def keys_to_file():
-        keys = await AsyncORM.select_keys()
-        with open('keys.txt', 'w') as file:
-            for key in keys:
-                file.write(f'{key}\n')
-            
-
-
-
-            
